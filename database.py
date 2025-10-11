@@ -5,7 +5,7 @@ from databases import Database
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # PostgreSQL接続URL
-DATABASE_URL = "postgresql://pos_user:pos_password@localhost/pos_db"
+DATABASE_URL = ""
 
 # データベースオブジェクト
 database = Database(DATABASE_URL)
