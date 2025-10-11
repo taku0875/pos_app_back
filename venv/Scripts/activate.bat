@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\alway\OneDrive\デスクトップ\POSアプリ\venv
+set VIRTUAL_ENV=C:\POS-app\backend\venv
 
 if not defined PROMPT set PROMPT=$P$G
 
