@@ -4,6 +4,7 @@
 
 name: Build and deploy Python app to Azure Web App - app-002-gen10-step3-1-py-oshima9
 
+
 on:
   push:
     branches:
@@ -63,4 +64,5 @@ jobs:
         with:
           app-name: 'app-002-gen10-step3-1-py-oshima9'
           slot-name: 'Production'
+
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B132F40BF1F042C2828A5EFD75C5E2F9 }}
