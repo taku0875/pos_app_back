@@ -2,9 +2,11 @@ import os
 import ssl
 import sqlalchemy
 from databases import Database
+from dotenv import load_dotenv 
 
+load_dotenv() 
 # Azure環境変数から接続情報を取得
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set.")
