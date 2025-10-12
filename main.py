@@ -13,6 +13,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+origins = [
+    "http://localhost:3000",  # Next.js開発環境
+    "https://localhost:3000",
+    "https://app-002-gen10-step3-1-py-oshima9.azurewebsites.net",  # デプロイ後も許可
+]
+
+
+
 # ✅ 商品検索APIをmainにも定義（スキャナー用）
 @app.get("/products/search")
 async def search_product(code: str):
