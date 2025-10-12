@@ -11,19 +11,18 @@ import os
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 SECRET_KEY = os.getenv("SECRET_KEY", "secret_key_change_me")
-ALGORITHM = "H256"
+ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+hashed_password = pwd_context.hash("password001")
 
-hashed_password = pwd_context.hash("test1")
 fake_users_db = {
     "user1": {
         "username": "test1",
-        "hashed_password": "password001"
+        "hashed_password": "$2b$12$xJhI8K.0DaA2d4A.Io/HXu6lAQrghZ8sn07knY3CvgaF.0jadAOl2"
     }
 }
-
 
 
 # --- モデル定義 ---
