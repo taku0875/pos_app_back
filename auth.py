@@ -11,7 +11,7 @@ import os
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 SECRET_KEY = os.getenv("SECRET_KEY", "secret_key_change_me")
-ALGORITHM = "test"
+ALGORITHM = "H256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
