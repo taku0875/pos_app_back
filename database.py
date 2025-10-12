@@ -1,38 +1,25 @@
-import sqlalchemy
-from databases import Database
-from sqlalchemy.orm import declarative_base
-from dotenv import load_dotenv
 import os
 import ssl
+import sqlalchemy
+from databases import Database
 
-# .envファイルから環境変数を読み込む
-load_dotenv()
+# Azure環境変数から接続情報を取得
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# 環境変数からデータベースURLとSSL証明書のパスを取得
-DATABASE_URL = os.getenv("DATABASE_URL")
-SSL_CA_PATH =r"C:\POS-app\backend\azure-mysql-ca-bundle.pem"
-
-
-# DATABASE_URLが設定されていない場合はエラーを発生させる
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set.")
 
-# SSL証明書のパスが指定されているか確認
-if not SSL_CA_PATH:
-    raise ValueError("SSL_CA_PATH environment variable is not set.")
+# Azure Database for MySQL は SSL 必須
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_REQUIRED
 
-# SSLコンテキストを生成
-# cafile引数にSSL証明書のパスを指定
-ssl_context = ssl.create_default_context(cafile=SSL_CA_PATH)
-
-# databaseオブジェクトの初期化時に、sslパラメータにssl_contextを渡す
-# Azure MySQLではこの形式が必須
+# ✅ App Service 環境には pem ファイルがないため create_default_context でOK
 database = Database(DATABASE_URL, ssl=ssl_context)
 
 metadata = sqlalchemy.MetaData()
 
-# テーブル定義
-# 商品マスタテーブル
+# --- 以下は既存のテーブル定義そのままでOK ---
 products = sqlalchemy.Table(
     "商品マスタ",
     metadata,
@@ -42,7 +29,6 @@ products = sqlalchemy.Table(
     sqlalchemy.Column("price", sqlalchemy.Integer),
 )
 
-# 取引テーブル
 transactions = sqlalchemy.Table(
     "取引",
     metadata,
@@ -55,7 +41,6 @@ transactions = sqlalchemy.Table(
     sqlalchemy.Column("ttl_amt_ex_tax", sqlalchemy.Integer),
 )
 
-# 取引明細テーブル
 transaction_details = sqlalchemy.Table(
     "取引明細",
     metadata,
