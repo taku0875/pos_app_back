@@ -12,7 +12,7 @@ async def lifespan(app: FastAPI):
     yield
     await database.disconnect()
 
-app = FastAPI(lifelauncher=lifespan)
+app = FastAPI(lifespan=lifespan)
 
 # CORSで許可するオリジンのリスト
 origins = [
