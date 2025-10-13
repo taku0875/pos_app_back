@@ -16,7 +16,10 @@ app = FastAPI(lifespan=lifespan)
 
 # CORSで許可するオリジンのリスト
 origins = [
-    "*"
+    # フロントエンドのデプロイ先のURL
+    "https://app-002-gen10-step3-1-node-oshima9.azurewebsites.net",
+    # ローカル開発環境のURL 
+    "http://localhost:8000",
 ]
 
 # 👈 CORSミドルウェアをアプリケーションに追加
