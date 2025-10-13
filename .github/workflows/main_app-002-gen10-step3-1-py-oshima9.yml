@@ -37,15 +37,7 @@ jobs:
           pip install -r requirements.txt
           echo "✅ Dependencies installed successfully."
 
-      # ✅ 4. キャッシュ削除（再デプロイ時に古いコードを残さない）
-      - name: Force clean build
-        run: |
-          echo "🧹 Cleaning build cache..."
-          rm -rf antenv
-          rm -rf __pycache__
-          rm -rf .python_packages
-          rm -rf .oryx_prod_node_modules
-          echo "✅ Cache cleaned successfully."
+
 
       # ✅ 5. 成果物をアップロード
       - name: Upload artifact for deployment jobs
