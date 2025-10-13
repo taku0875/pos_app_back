@@ -77,3 +77,11 @@ transaction_details = sqlalchemy.Table(
     sqlalchemy.Column("prd_price", sqlalchemy.Integer),
     sqlalchemy.Column("tax_cd", sqlalchemy.String(2)),
 )
+
+users = sqlalchemy.Table(
+    "users",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, index=True),
+    sqlalchemy.Column("email", sqlalchemy.String(100), unique=True, index=True, nullable=False),
+    sqlalchemy.Column("hashed_password", sqlalchemy.String(255), nullable=False),
+)
