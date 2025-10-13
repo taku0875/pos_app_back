@@ -5,16 +5,17 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt
 import os
 
+router = APIRouter(tags=["auth"])
+
 # データベース接続とテーブル定義、ハッシュ化ユーティリティをインポート
 from database import database, users
 from hashing import Hash
-
-router = APIRouter(prefix="/auth", tags=["auth"])
 
 # --- 環境変数 ---
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
+
 
 if not SECRET_KEY:
     raise ValueError("JWT_SECRET_KEY must be set in environment variables")

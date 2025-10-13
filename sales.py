@@ -28,7 +28,7 @@ async def purchase(request: PurchaseRequest):
     if not request.items:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="購入商品が指定されていません")
 
-    async with database.transaction() as transaction:
+    async with database.transaction () as transaction:
         try:
             total_amt_ex_tax = sum(item.price * item.quantity for item in request.items)
             tax_rate = 0.10
