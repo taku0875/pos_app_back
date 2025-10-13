@@ -35,7 +35,8 @@ app.add_middleware(
 # 既存ルーターを登録
 app.include_router(products.router, prefix="/api/v1/products", tags=["products"])
 app.include_router(sales.router, prefix="/api/v1/sales", tags=["sales"])
-app.include_router(auth_router)
+# prefix="/api/auth" を追加
+app.include_router(auth_router, prefix="/api/auth")
 
 if __name__ == "__main__":
     import uvicorn
