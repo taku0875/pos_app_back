@@ -9,7 +9,7 @@ import os
 from database import database, users
 from hashing import Hash
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(tags=["auth"])
 
 # --- 環境変数 ---
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")

@@ -38,10 +38,8 @@ app.include_router(products.router, prefix="/products", tags=["products"])
 app.include_router(sales.router, prefix="/sales", tags=["sales"])
 app.include_router(auth_router)
 
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-# 既存ルーターを登録
-app.include_router(products.router, prefix="/products", tags=["products"])
-app.include_router(sales.router, prefix="/sales", tags=["sales"])
-app.include_router(auth_router)
