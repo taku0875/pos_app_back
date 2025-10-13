@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 origins = [
-    "＊" # デプロイ後も許可
+    "*" # デプロイ後も許可
 ]
 
 
