@@ -14,17 +14,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-
-origins = [
-    "https://app-002-gen10-step3-1-node-oshima9.azurewebsites.net",  # Frontend
-    "https://app-002-gen10-step3-1-py-oshima9.azurewebsites.net",    # Backend
-    "http://localhost:3000",
-    "http://localhost:8000",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    # フロントエンドのURLに合わせてください
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
