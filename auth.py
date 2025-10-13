@@ -1,68 +1,54 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+from typing import Optional
+from datetime import datetime, timedelta, timezone
+from jose import jwt
 import os
+
+# データベース接続とテーブル定義、ハッシュ化ユーティリティをインポート
+from database import database, users
+from hashing import Hash
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# --- セキュリティ設定 ---
+# --- 環境変数 ---
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
 
-if SECRET_KEY is None:
-    raise ValueError("JWT_SECRET_KEY must be set in the environment variables.")
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# --- テスト用のユーザーデータベース ---
-fake_users_db = {
-    "test1": {
-        "username": "test1",
-        # 👇 "password001"に対応する検証済みの正しいハッシュ値
-        "hashed_password": "$2b$12$EixZaY2V.4.wz.g523s3sOXsgKzZxwe4S.86Y.N2.GM.s.cMUv.Da"
-    }
-}
+if not SECRET_KEY:
+    raise ValueError("JWT_SECRET_KEY must be set in environment variables")
 
 # --- モデル定義 ---
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-class UserLogin(BaseModel):
+class LoginRequest(BaseModel):
     username: str
     password: str
 
-# --- ヘルパー関数 ---
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_user(username: str):
-    if username in fake_users_db:
-        return fake_users_db[username]
-    return None
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+# --- トークン生成 ---
+def create_access_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# --- APIエンドポイント ---
+# --- ログイン API ---
 @router.post("/login", response_model=Token)
-async def login_for_access_token(form_data: UserLogin):
-    user = get_user(form_data.username)
-    if not user or not verify_password(form_data.password, user["hashed_password"]):
+async def login(request: LoginRequest):
+    # データベースのusersテーブルからユーザーを検索
+    query = users.select().where(users.c.email == request.username)
+    user = await database.fetch_one(query)
+
+    # ユーザーが見つからないか、パスワードが一致しない場合はエラー
+    if not user or not Hash.verify(user.hashed_password, request.password):
         raise HTTPException(
-            status_code=401,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Incorrect username or password"
         )
-    
-    access_token = create_access_token(
-        data={"sub": user["username"]}
-    )
+
+    # 成功した場合、アクセストークンを生成して返す
+    access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
