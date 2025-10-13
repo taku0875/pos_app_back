@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware  # 👈 CORSMiddlewareをインポート
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import database
 import products
@@ -14,15 +14,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# CORSで許可するオリジンのリスト
 origins = [
-    # フロントエンドのデプロイ先のURL
     "https://app-002-gen10-step3-1-node-oshima9.azurewebsites.net",
-    # ローカル開発環境のURL 
+    "http://localhost:3000",
     "http://localhost:8000",
 ]
 
-# 👈 CORSミドルウェアをアプリケーションに追加
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -31,7 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 既存ルーターを登録
 app.include_router(products.router, prefix="/api/v1/products", tags=["products"])
 app.include_router(sales.router, prefix="/api/v1/sales", tags=["sales"])
 app.include_router(auth_router)
