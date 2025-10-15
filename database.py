@@ -11,6 +11,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 dotenv_path = os.path.join(BASE_DIR, '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
+
 # 環境変数から接続情報を取得
 DATABASE_URL = os.getenv("DATABASE_URL")
 SSL_CA_FILENAME = os.getenv("SSL_CA_PATH") # .envからはファイル名だけ取得
