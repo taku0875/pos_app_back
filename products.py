@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from database import database, products
 
-router = APIRouter()
+# ✅ prefixを追加
+router = APIRouter(prefix="/products")
 
 @router.get("/search")
 async def search_product(code: str):
