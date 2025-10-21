@@ -5,7 +5,6 @@ from database import database
 import products
 import sales
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.connect()
@@ -14,15 +13,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# CORSで許可するオリジン（アクセス元）のリスト
+# ✅ CORS設定（ここが最重要）
 origins = [
-    "https://app-002-gen10-step3-1-node-oshima9.azurewebsites.net",
-    "https://app-002-gen10-step3-1-py-oshima9.azurewebsites.net",
-    "http://localhost:3000",
-    "http://localhost:8000",
+    "https://app-002-gen10-step3-1-node-oshima9.azurewebsites.net",  # フロントエンド
+    "http://localhost:3000",  # ローカル開発用（必要なら残す）
 ]
 
-# CORSミドルウェアをアプリケーションに追加
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -31,14 +27,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ✅ ルーター登録（CORS設定の後に書くのが重要！）
+app.include_router(products.router)
+app.include_router(sales.router)
 
-# 既存ルーターを登録
-app.include_router(products.router, prefix="/products", tags=["products"])
-app.include_router(sales.router, prefix="/sales", tags=["sales"])
-
-
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# ✅ 動作確認用のルート（疎通テストに便利）
+@app.get("/")
+def read_root():
+    return {"message": "Backend is running and CORS is working!"}
