@@ -79,3 +79,29 @@ transaction_details = sqlalchemy.Table(
     sqlalchemy.Column("tax_cd", sqlalchemy.String(2)),
 )
 
+transactions = sqlalchemy.Table(
+    "取引",
+    metadata,
+    sqlalchemy.Column("trd_id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("datetime", sqlalchemy.TIMESTAMP),
+    sqlalchemy.Column("emp_cd", sqlalchemy.String(10)),
+    sqlalchemy.Column("store_cd", sqlalchemy.String(5)),
+    sqlalchemy.Column("pos_no", sqlalchemy.String(3)),
+    sqlalchemy.Column("total_amt", sqlalchemy.Integer),
+    sqlalchemy.Column("ttl_amt_ex_tax", sqlalchemy.Integer),
+    extend_existing=True,  # ← これを追加
+)
+
+transaction_details = sqlalchemy.Table(
+    "取引明細",
+    metadata,
+    sqlalchemy.Column("dtl_id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("trd_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("取引.trd_id")),
+    sqlalchemy.Column("prd_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("商品マスタ.prd_id")),
+    sqlalchemy.Column("prd_code", sqlalchemy.String(13)),
+    sqlalchemy.Column("prd_name", sqlalchemy.String(50)),
+    sqlalchemy.Column("prd_price", sqlalchemy.Integer),
+    sqlalchemy.Column("tax_cd", sqlalchemy.String(2)),
+    extend_existing=True,  # ← これも追加
+)
+

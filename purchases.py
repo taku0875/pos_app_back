@@ -2,45 +2,55 @@ from fastapi import APIRouter, HTTPException
 from database import database, transactions, transaction_details, products
 from datetime import datetime
 from sqlalchemy import insert, select
+import traceback
 
 router = APIRouter()
 
 @router.post("/purchases")
 async def create_purchase(data: dict):
     """
-    カート内の複数商品を登録するAPI
-    data = {
+    複数商品の購入情報を登録するAPI。
+    受信形式:
+    {
       "items": [
-        {"code": "4901085653463", "name": "カフェオレ", "price": 180},
-        {"code": "4901777318772", "name": "紅茶", "price": 150}
+        {"product_id": 1, "quantity": 2, "price": 180},
+        {"product_id": 2, "quantity": 1, "price": 220}
       ],
-      "total": 330,
-      "totalWithTax": 363
+      "total": 580,
+      "totalWithTax": 638
     }
     """
     try:
+        print("🟢 受信データ:", data)
         items = data.get("items", [])
         if not items:
-            raise HTTPException(status_code=400, detail="商品が空です")
+            raise HTTPException(status_code=400, detail="商品データが空です")
 
-        # ✅ トランザクション登録
+        # --- トランザクション（取引ヘッダ）登録 ---
         trd_insert = insert(transactions).values(
             datetime=datetime.now(),
             emp_cd="E001",
             store_cd="S001",
             pos_no="001",
-            total_amt=data.get("totalWithTax"),
-            ttl_amt_ex_tax=data.get("total"),
+            total_amt=data.get("totalWithTax", 0),
+            ttl_amt_ex_tax=data.get("total", 0),
         )
         trd_id = await database.execute(trd_insert)
+        print(f"🟢 取引登録完了 trd_id={trd_id}")
 
-        # ✅ 各商品を明細登録
+        # --- 各明細を登録 ---
         for item in items:
-            # DB上の商品確認（存在チェック）
-            query = select(products).where(products.c.code == item["code"])
-            product = await database.fetch_one(query)
+            print(f"➡️ 明細処理中: {item}")
+            product_id = item.get("product_id")
+            if not product_id:
+                print(f"⚠️ product_id が指定されていません: {item}")
+                continue
+
+            prd_query = select(products).where(products.c.prd_id == product_id)
+            product = await database.fetch_one(prd_query)
+            print("📦 商品取得結果:", product)
             if not product:
-                print(f"⚠️ 商品コード {item['code']} がマスタに存在しません。スキップします。")
+                print(f"⚠️ 商品ID {product_id} がマスタに存在しません。スキップします。")
                 continue
 
             dtl_insert = insert(transaction_details).values(
@@ -48,15 +58,18 @@ async def create_purchase(data: dict):
                 prd_id=product["prd_id"],
                 prd_code=product["code"],
                 prd_name=product["name"],
-                prd_price=product["price"],
+                prd_price=item["price"],
                 tax_cd="01",
             )
             await database.execute(dtl_insert)
+            print(f"✅ 明細登録OK: {product['name']}")
 
-        return {"message": "複数商品の購入を登録しました", "trd_id": trd_id}
+        print("🎉 全商品の登録完了")
+        return {"message": "購入を登録しました", "trd_id": trd_id}
 
     except HTTPException:
         raise
     except Exception as e:
+        traceback.print_exc()
         print(f"❌ [PURCHASE INSERT ERROR] {e}")
         raise HTTPException(status_code=500, detail=str(e))
