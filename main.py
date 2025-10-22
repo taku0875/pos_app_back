@@ -11,7 +11,8 @@ async def lifespan(app: FastAPI):
     yield
     await database.disconnect()
 
-app = FastAPI(lifespan=lifespan, prefix="/api/v1")
+# ▼▼▼ 'prefix="/api/v1"' を削除した元の形に戻します ▼▼▼
+app = FastAPI(lifespan=lifespan)
 
 # ✅ CORS設定（ここが最重要）
 origins = [
