@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from database import database
 import products
 import sales
+import purchases
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +32,8 @@ app.add_middleware(
 # ✅ ルーター登録（CORS設定の後に書くのが重要！）
 app.include_router(products.router)
 app.include_router(sales.router)
+app.include_router(purchases.router)
+
 
 # ✅ 動作確認用のルート（疎通テストに便利）
 @app.get("/")
