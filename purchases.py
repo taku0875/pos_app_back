@@ -89,3 +89,17 @@ async def create_purchase(data: dict):
                 "traceback": tb
             }
         )
+    
+@router.get("/test")
+async def test_connection():
+    try:
+        print("🧠 DB接続テスト開始")
+        query = "SELECT COUNT(*) as cnt FROM 商品マスタ"
+        result = await database.fetch_one(query)
+        print("✅ DB接続OK:", result)
+        return {"message": "DB接続成功", "result": result}
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        print("❌ DB接続エラー:", e)
+        return {"error": str(e), "traceback": tb}
