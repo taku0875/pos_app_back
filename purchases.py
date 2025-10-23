@@ -13,11 +13,11 @@ async def create_purchase(data: dict):
     受信形式:
     {
       "items": [
-        {"product_id": 1, "quantity": 2, "price": 180},
-        {"product_id": 2, "quantity": 1, "price": 220}
+        {"code": "4901085653463", "name": "タリーズコーヒー", "price": 180, "quantity": 1},
+        {"code": "4901777318779", "name": "サントリー天然水", "price": 120, "quantity": 2}
       ],
-      "total": 580,
-      "totalWithTax": 638
+      "total": 420,
+      "totalWithTax": 462
     }
     """
     try:
@@ -26,7 +26,7 @@ async def create_purchase(data: dict):
         if not items:
             raise HTTPException(status_code=400, detail="商品データが空です")
 
-        # --- トランザクション（取引ヘッダ）登録 ---
+        # --- 取引ヘッダ登録 ---
         trd_insert = insert(transactions).values(
             datetime=datetime.now(),
             emp_cd="E001",
@@ -38,21 +38,19 @@ async def create_purchase(data: dict):
         trd_id = await database.execute(trd_insert)
         print(f"🟢 取引登録完了 trd_id={trd_id}")
 
-        # --- 各明細を登録 ---
+        # --- 各明細登録 ---
         for item in items:
             print(f"➡️ 明細処理中: {item}")
-            product_id = item.get("product_id")
-            if not product_id:
-                print(f"⚠️ product_id が指定されていません: {item}")
-                continue
 
-            prd_query = select(products).where(products.c.prd_id == product_id)
+            # 商品コードからマスタ検索
+            prd_query = select(products).where(products.c.code == item["code"])
             product = await database.fetch_one(prd_query)
-            print("📦 商品取得結果:", product)
+
             if not product:
-                print(f"⚠️ 商品ID {product_id} がマスタに存在しません。スキップします。")
+                print(f"⚠️ 商品コード {item['code']} がマスタに存在しません。スキップします。")
                 continue
 
+            # 明細登録
             dtl_insert = insert(transaction_details).values(
                 trd_id=trd_id,
                 prd_id=product["prd_id"],
@@ -65,7 +63,7 @@ async def create_purchase(data: dict):
             print(f"✅ 明細登録OK: {product['name']}")
 
         print("🎉 全商品の登録完了")
-        return {"message": "購入を登録しました", "trd_id": trd_id}
+        return {"message": "複数商品の購入を登録しました", "trd_id": trd_id}
 
     except HTTPException:
         raise
