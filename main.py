@@ -31,8 +31,8 @@ app.add_middleware(
 
 # ✅ ルーター登録（CORS設定の後に書くのが重要！）
 app.include_router(products.router)
-app.include_router(sales.router)
 app.include_router(purchases.router)
+app.include_router(sales.router)
 
 
 # ✅ 動作確認用のルート（疎通テストに便利）
