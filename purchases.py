@@ -36,7 +36,7 @@ async def create_purchase(request: PurchaseRequest):
 
         # --- 取引（ヘッダ）登録 ---
         trd_query = """
-            INSERT INTO 取引 (datetime, emp_cd, store_cd, pos_no, total_amt, ttl_amt_ex_tax)
+            INSERT INTO `取引` (`datetime`, `emp_cd`, `store_cd`, `pos_no`, `total_amt`, `ttl_amt_ex_tax`)
             VALUES (:datetime, :emp_cd, :store_cd, :pos_no, :total_amt, :ttl_amt_ex_tax)
         """
         trd_values = {
@@ -47,6 +47,7 @@ async def create_purchase(request: PurchaseRequest):
             "total_amt": request.totalWithTax,
             "ttl_amt_ex_tax": request.total
         }
+
         trd_id = await database.execute(trd_query, trd_values)
         print(f"✅ 取引登録成功: trd_id={trd_id}")
 
@@ -54,7 +55,7 @@ async def create_purchase(request: PurchaseRequest):
         for item in request.items:
             for _ in range(item.quantity):  # ← 数量分ループで登録
                 dtl_query = """
-                    INSERT INTO 取引明細 (trd_id, prd_id, prd_code, prd_name, prd_price, tax_cd)
+                    INSERT INTO `取引明細` (`trd_id`, `prd_id`, `prd_code`, `prd_name`, `prd_price`, `tax_cd`)
                     VALUES (:trd_id, :prd_id, :prd_code, :prd_name, :prd_price, :tax_cd)
                 """
                 dtl_values = {
