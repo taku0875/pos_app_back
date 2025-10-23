@@ -7,30 +7,22 @@ import traceback
 
 router = APIRouter()
 
-# -------------------------------
-# 💡 Pydanticモデル定義
-# -------------------------------
 
 class PurchaseItem(BaseModel):
     product_id: int
     product_name: str
     price: int
-    quantity: int  # ← 数量を必須に！
+    quantity: int
+
 
 class PurchaseRequest(BaseModel):
     items: List[PurchaseItem]
     total: int
     totalWithTax: int
 
-# -------------------------------
-# 💡 購入登録API
-# -------------------------------
 
 @router.post("/purchases")
 async def create_purchase(request: PurchaseRequest):
-    """
-    複数商品の購入情報を登録するAPI
-    """
     try:
         print("🟢 購入登録開始:", request.dict())
 
@@ -48,12 +40,15 @@ async def create_purchase(request: PurchaseRequest):
             "ttl_amt_ex_tax": request.total
         }
 
-        trd_id = await database.execute(trd_query, trd_values)
+        # executeではなくfetch_one()を使用してtrd_idを取得
+        await database.execute(trd_query, trd_values)
+        trd_id_row = await database.fetch_one("SELECT LAST_INSERT_ID() AS id")
+        trd_id = trd_id_row["id"]
         print(f"✅ 取引登録成功: trd_id={trd_id}")
 
         # --- 取引明細登録 ---
         for item in request.items:
-            for _ in range(item.quantity):  # ← 数量分ループで登録
+            for _ in range(item.quantity):
                 dtl_query = """
                     INSERT INTO `取引明細` (`trd_id`, `prd_id`, `prd_code`, `prd_name`, `prd_price`, `tax_cd`)
                     VALUES (:trd_id, :prd_id, :prd_code, :prd_name, :prd_price, :tax_cd)
