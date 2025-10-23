@@ -82,3 +82,26 @@ async def create_purchase(request: PurchaseRequest):
         print("❌ PURCHASE INSERT ERROR:", str(e))
         print(tb)
         raise HTTPException(status_code=500, detail={"error": str(e), "traceback": tb})
+
+# ------------------------------------------------
+# ✅ デバッグ用エンドポイント（DB疎通とデータ確認）
+# ------------------------------------------------
+@router.get("/debug-db")
+async def debug_db():
+    """
+    DB接続確認とレコード件数確認用
+    """
+    try:
+        async with database.connection() as conn:
+            trd_count = await conn.fetch_val("SELECT COUNT(*) FROM `取引`")
+            dtl_count = await conn.fetch_val("SELECT COUNT(*) FROM `取引明細`")
+            return {
+                "取引テーブル件数": trd_count,
+                "取引明細テーブル件数": dtl_count
+            }
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        print("❌ DEBUG DB ERROR:", e)
+        print(tb)
+        return {"error": str(e), "trace": tb}
