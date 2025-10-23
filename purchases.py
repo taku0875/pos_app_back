@@ -9,7 +9,8 @@ router = APIRouter()
 @router.post("/purchases")
 async def create_purchase(data: dict):
     """
-    複数商品の購入情報を登録するAPI。
+    複数商品の購入情報を登録するAPI（デバッグ強化版）
+
     受信形式:
     {
       "items": [
@@ -21,12 +22,13 @@ async def create_purchase(data: dict):
     }
     """
     try:
-        print("🟢 受信データ:", data)
+        print("🟢 [START] 受信データ:", data)
+
         items = data.get("items", [])
         if not items:
             raise HTTPException(status_code=400, detail="商品データが空です")
 
-        # --- 取引ヘッダ登録 ---
+        # --- トランザクション（取引ヘッダ）登録 ---
         trd_insert = insert(transactions).values(
             datetime=datetime.now(),
             emp_cd="E001",
@@ -42,21 +44,25 @@ async def create_purchase(data: dict):
         for item in items:
             print(f"➡️ 明細処理中: {item}")
 
-            # 商品コードからマスタ検索
-            prd_query = select(products).where(products.c.code == item["code"])
-            product = await database.fetch_one(prd_query)
-
-            if not product:
-                print(f"⚠️ 商品コード {item['code']} がマスタに存在しません。スキップします。")
+            code = item.get("code")
+            if not code:
+                print("⚠️ code が指定されていません。スキップします。")
                 continue
 
-            # 明細登録
+            prd_query = select(products).where(products.c.code == code)
+            product = await database.fetch_one(prd_query)
+            print("📦 商品取得結果:", product)
+
+            if not product:
+                print(f"⚠️ 商品コード {code} がマスタに存在しません。スキップします。")
+                continue
+
             dtl_insert = insert(transaction_details).values(
                 trd_id=trd_id,
                 prd_id=product["prd_id"],
                 prd_code=product["code"],
                 prd_name=product["name"],
-                prd_price=item["price"],
+                prd_price=item.get("price", product["price"]),
                 tax_cd="01",
             )
             await database.execute(dtl_insert)
@@ -65,9 +71,21 @@ async def create_purchase(data: dict):
         print("🎉 全商品の登録完了")
         return {"message": "複数商品の購入を登録しました", "trd_id": trd_id}
 
-    except HTTPException:
-        raise
+    # --- 明示的なHTTP例外 ---
+    except HTTPException as e:
+        print("⚠️ HTTPException:", e.detail)
+        raise e
+
+    # --- その他の例外（詳細を返す）---
     except Exception as e:
-        traceback.print_exc()
-        print(f"❌ [PURCHASE INSERT ERROR] {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        tb = traceback.format_exc()
+        print("❌ [PURCHASE INSERT ERROR]", str(e))
+        print("📄 Traceback詳細:\n", tb)
+        # ← レスポンスにも詳細を返す
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": str(e),
+                "traceback": tb
+            }
+        )
